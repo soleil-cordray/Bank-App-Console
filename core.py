@@ -5,10 +5,10 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
 
-# [SUGGEST] Typo in the comment below: "fat api" should be "FastAPI".
+# [SUGGEST] Typo in the comment below: "fast api" should be "FastAPI".
 # [EXPLAIN] Creates the single app object. Every route file attaches its routes to this same instance, and uvicorn serves it through main.py.
 # [SUGGEST] Longer term, replace the shared global app with an APIRouter per resource so route files don't need to import the app at all.
-#initialize the fat api app
+#initialize the fast api app
 app = FastAPI(title="Bank-App Console")
 
 # [SUGGEST] This comment doesn't describe anything below it. Delete it, or move it next to the admin row in accounts.
@@ -20,7 +20,7 @@ app = FastAPI(title="Bank-App Console")
 # [SUGGEST] The name "accounts" is confusing in a bank app, since balances live on customers. Consider renaming to "users".
 # [SUGGEST] Usernames here ("Johnathan", "Jane Doe") don't match any username in customers. Decide whether a username lives in one place or two.
 accounts = [
-    {"id": 1, "username": "admin", "password": "admin123", "account_type": "admin"},
+    {"id": 1, "username": "admin", "password": "admin123", "account_type": "admin", "customer_id": None},
     {"id": 2, "username": "Johnathan", "password": "IAmJohn", "account_type": "user", "customer_id": 1},
     {"id": 3, "username": "Jane Doe", "password": "jane123", "account_type": "user", "customer_id": 2},
     {"id": 4, "username": "Rohit", "password": "rohit123", "account_type": "user", "customer_id": 3},
@@ -54,6 +54,11 @@ customer_id_counter = 6
 class AccountCreate(BaseModel):
     username: str
     password: str
+    account_type: str
+    customer_id: int | None = None  # Optional field to link to a customer
+
+class AccountRead(BaseModel):
+    username: str
     account_type: str
 
 
