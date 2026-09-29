@@ -31,6 +31,7 @@ Model
 The first version will use in-memory data. A database can be added later without changing the overall architecture.
 
 ## 🛠️ Technology
+
 - Python
 - Flask
 - REST API
@@ -66,6 +67,7 @@ bank-api/
 | Model	| Customer, Account, Transaction, etc. |
 
 ## 🔄 Java → Python Mapping
+
 | Java | Python |
 | - | - |
 | Main.main()	| app/main.py |
@@ -82,124 +84,128 @@ bank-api/
 The REST API replaces the console interaction; the underlying banking concepts remain.
 
 ## 👤 Customer API
-Method	Endpoint	Purpose
-POST	/api/v1/customers	Create customer
-GET	/api/v1/customers	List customers
-GET	/api/v1/customers/{id}	Get customer
-PUT	/api/v1/customers/{id}	Update customer
-DELETE	/api/v1/customers/{id}	Deactivate customer
+
+| Method | Endpoint |	Purpose |
+| - | - | - |
+| POST |	/api/v1/customers	| Create customer |
+| GET |	/api/v1/customers	| List customers |
+| GET	| /api/v1/customers/{id} | Get customer |
+| PUT	| /api/v1/customers/{id} | Update customer |
+| DELETE | /api/v1/customers/{id}	| Deactivate customer |
 
 Example:
-
+```bash
 POST /api/v1/customers
-
+```
+```json
 {
     "name": "Rohit",
     "username": "rohit",
     "password": "rohit123"
 }
+```
 
 ## 💳 Account API
+
+```bash
 POST /api/v1/accounts
 GET  /api/v1/accounts
-
+```
 
 Example:
-
+```json
 {
     "customer_id": 1,
     "branch_id": 123,
     "account_type": "SAVINGS",
     "initial_balance": 5000
 }
-
+```
 
 Account types:
-
+```bash
 CHECKING
 SAVINGS
+```
 
 ## 💸 Transaction API
 
 Transfer money:
 
+```bash
 POST /api/v1/transactions/transfer
-
+```
+```json
 {
     "from_account_id": 101,
     "to_account_id": 102,
     "amount": 500
 }
+```
 
-
-The service layer will enforce:
-
-Accounts exist
-
-Accounts are active
-
-Amount is greater than zero
-
-Sufficient balance exists
-
-Source balance is reduced
-
-Destination balance is increased
-
-Transaction is recorded
+The service layer will **enforce**:
+- Accounts exist
+- Accounts are active
+- Amount is greater than zero
+- Sufficient balance exists
+- Source balance is reduced
+- Destination balance is increased
+- Transaction is recorded
 
 ## 🏦 Branches
 
 Branches will be added to support account filtering.
-
+```bash
 Branch
 ├── id
 ├── name
 └── location
-
+```
 
 Accounts will reference a branch:
-
+```bash
 Account
 ├── id
 ├── customer_id
 ├── branch_id
 ├── account_type
 └── balance
+```
 
 ## 🔎 Filtering
 
 Accounts:
-
+```bash
 GET /api/v1/accounts?branch_id=123&min_balance=1000
-
+```
 
 Transactions:
-
+```bash
 GET /api/v1/transactions?start_date=2026-01-01&type=TRANSFER
+```
 
 ## 📊 HTTP Status Codes
-Status	Usage
-200	Successful request
-201	Resource created
-400	Invalid request
-404	Resource not found
-500	Unexpected server error
-🗺️ Implementation Roadmap
-Step 1 — Setup
+| Status | Usage |
+| - | - |
+| 200	| Successful request |
+| 201	| Resource created |
+| 400	| Invalid request |
+| 404	| Resource not found |
+| 500	| Unexpected server error |
 
-Create Flask project
+## 🗺️ Implementation Roadmap
 
-Create package structure
+### 1. Setup
 
-Create main.py
+- Create project ✅
+- Create package structure ✅
+- Create main.py ✅
+- Run the API
 
-Run the API
-
-Step 2 — Models
+### 1. Models
 
 Implement:
-
+```bash
 User
 Customer
 Account
@@ -207,49 +213,47 @@ CheckingAccount
 SavingsAccount
 Branch
 Transaction
+```
 
-Step 3 — Customer CRUD
+### 3. Customer CRUD
 
 Implement:
-
+```bash
 Repository
     ↓
 Service
     ↓
 Controller
-
-
+```
 for all customer endpoints.
 
-Step 4 — Accounts
+### 4. Accounts
 
 Add account creation, retrieval, and filtering.
 
-Step 5 — Transactions
+### 5. Transactions
 
 Implement money transfers and transaction history.
 
-Step 6 — Branches & Filtering
+### 6. Branches & Filtering
 
 Add branch relationships and query parameter filtering.
 
-Step 7 — Error Handling & Testing
+### 7. Error Handling & Testing
 
-Verify:
-
+Using Postman or curl, verify:
+```bash
 200
 201
 400
 404
 500
-
-
-using Postman or curl.
+```
 
 ## 🎯 End Goal
 
 Transform:
-
+```bash
 Java Console Application
           ↓
 Python REST API
@@ -263,6 +267,6 @@ Repository
 Models
           ↓
 Future Database
-
+```
 
 The focus of Phase 02 is learning how to transform the existing single-flow Java banking application into a modular RESTful backend.
