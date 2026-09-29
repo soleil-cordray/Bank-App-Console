@@ -11,3 +11,4 @@ def get_account(account_id: int):
         if account["id"] == account_id:
             return account
     raise HTTPException(status_code=404, detail="Account not found")
+
