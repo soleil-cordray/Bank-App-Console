@@ -1,15 +1,16 @@
-# [EXPLAIN] Delete operation for customers.
-from fastapi import HTTPException
-from core import app, customers
+# [EXPLAIN] Delete operation for customers. Only the admin can delete. Customers have to ask the admin.
+from fastapi import Depends
 
-# [EXPLAIN] DELETE /customers/{customer_id} finds the customer, removes it from the shared list, and returns a message. Removing while looping is safe here only because the function returns immediately afterward.
-# [SUGGEST] Deleting a customer leaves any linked account with a customer_id that points at nothing. Decide the rule: block the delete, delete the account too, or clear the link.
-# [SUGGEST] Consider refusing to delete a customer whose balance is above zero.
-# [SUGGEST] Same search loop as the other customer files. Use the shared helper once it exists.
+from auth import admin_only, get_customer_or_404
+from core import accounts, app, customers
+
+
+# [EXPLAIN] DELETE /customers/{customer_id} removes the customer and their login, so no account is left pointing at a customer that no longer exists.
 @app.delete("/customers/{customer_id}")
-def delete_customer(customer_id: int):
-    for existing_customer in customers:
-        if existing_customer["id"] == customer_id:
-            customers.remove(existing_customer)
-            return {"message": "Customer deleted successfully"}
-    raise HTTPException(status_code=404, detail="Customer not found")
+def delete_customer(customer_id: int, admin=Depends(admin_only)):
+    customer = get_customer_or_404(customer_id)
+    customers.remove(customer)
+    # [:] changes the shared list in place instead of making a new one (see the note on customers in core.py).
+    accounts[:] = [account for account in accounts if account.get("customer_id") != customer_id]
+    # Their transactions stay in the log: banks keep records after closing an account.
+    return {"message": "Customer deleted successfully", "customer": customer}
