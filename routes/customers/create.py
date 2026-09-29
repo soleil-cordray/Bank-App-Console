@@ -23,6 +23,6 @@ def create_customer(customer: CustomerCreate):
 
     customers.append(new_customer)
     # id_counter += 1   (original)
-    core.id_counter += 1
+    core.customer_id_counter += 1
 
     return new_customer
