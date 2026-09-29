@@ -4,9 +4,64 @@ Backend REST API | CRUD MVC Flow
 
 ## Prerequisites
 
-1. install dependencies ==>
-    windows: pip install fastapi uvicorn pydantic
-    mac: brew install fastapi uvicorn pydantic
+1. **Install Python**
+
+   Check installation:
+   * **macOS/Linux**: `python3 --version`
+   * **Windows**: `python --version`
+
+2. **Create a Virtual Environment**
+
+   From project root:
+   * **macOS/Linux**:
+     ```bash
+     python3 -m venv venv
+     source venv/bin/activate
+     ```
+   * **Windows**:
+     ```bash
+     python -m venv venv
+     venv\Scripts\activate
+     ```
+
+3. **Install Dependencies**
+
+   Once the virtual environment is activated:
+   * **macOS/Linux**: `python -m pip install fastapi uvicorn`
+   * **Windows**: `python -m pip install fastapi uvicorn`
+
+4. **Save Dependencies**
+
+   After installing the packages:
+   ```python
+   python -m pip freeze > requirements.txt
+   ```
+
+   The `requirements.txt` file allows other developers to install the same dependencies:
+   ```python
+   python -m pip install -r requirements.txt
+   ```
+
+5. **IDE**
+
+   You can use either VS Code or Zed. The Python setup is the same; the IDE does not change how the virtual environment or packages are installed.
+
+   Project setup:
+   ```bash
+   Bank-App-Console/
+   ├── app/
+   ├── venv/
+   ├── requirements.txt
+   ├── .gitignore
+   └── README.md
+   ```
+
+   Add the virtual environment to `.gitignore`:
+   ```bash
+   venv/
+   __pycache__/
+   *.pyc
+   ```
 
 ## 🎯 Goal
 
@@ -18,13 +73,13 @@ The Java application's core concepts (User, Customer, Account, SavingsAccount, a
 
 ```bash
 HTTP Request
-     ↓
+↓
 Controller / Router
-     ↓
+↓
 Service / Business Logic
-     ↓
+↓
 Repository / Data Access
-     ↓
+↓
 Model
 ```
 
@@ -93,7 +148,7 @@ The REST API replaces the console interaction; the underlying banking concepts r
 | PUT	| /api/v1/customers/{id} | Update customer |
 | DELETE | /api/v1/customers/{id}	| Deactivate customer |
 
-Example:
+**Example**:
 ```bash
 POST /api/v1/customers
 ```
@@ -112,7 +167,7 @@ POST /api/v1/accounts
 GET  /api/v1/accounts
 ```
 
-Example:
+**Example**:
 ```json
 {
     "customer_id": 1,
@@ -122,7 +177,7 @@ Example:
 }
 ```
 
-Account types:
+**Account Types**:
 ```bash
 CHECKING
 SAVINGS
@@ -130,8 +185,7 @@ SAVINGS
 
 ## 💸 Transaction API
 
-Transfer money:
-
+**Transfer Money**:
 ```bash
 POST /api/v1/transactions/transfer
 ```
@@ -174,12 +228,12 @@ Account
 
 ## 🔎 Filtering
 
-Accounts:
+**Accounts**:
 ```bash
 GET /api/v1/accounts?branch_id=123&min_balance=1000
 ```
 
-Transactions:
+**Transactions**:
 ```bash
 GET /api/v1/transactions?start_date=2026-01-01&type=TRANSFER
 ```
@@ -220,9 +274,9 @@ Transaction
 Implement:
 ```bash
 Repository
-    ↓
+↓
 Service
-    ↓
+↓
 Controller
 ```
 for all customer endpoints.
@@ -255,17 +309,17 @@ Using Postman or curl, verify:
 Transform:
 ```bash
 Java Console Application
-          ↓
+↓
 Python REST API
-          ↓
+↓
 Controller
-          ↓
+↓
 Service
-          ↓
+↓
 Repository
-          ↓
+↓
 Models
-          ↓
+↓
 Future Database
 ```
 
