@@ -106,8 +106,10 @@ def create_account(account: AccountCreate):
 
     new_account = {
         "id": id_counter,
+        "username": account.username,
+        "password": account.password,
+        "account_type": account.account_type,
         "customer_id": account.customer_id,
-        
     }
 
     accounts.append(new_account)
