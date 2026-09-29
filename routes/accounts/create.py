@@ -1,5 +1,6 @@
 # [EXPLAIN] Create operation for accounts (login credentials). As in customers/create.py, `import core` is needed so the shared counter is updated for real.
 import core
+from fastapi import HTTPException
 from core import app, accounts, AccountCreate
 
 # [EXPLAIN] POST /accounts builds an account dict from the request body, appends it to the shared list, bumps the counter, and returns it.
@@ -8,9 +9,13 @@ from core import app, accounts, AccountCreate
 # [SUGGEST] The response includes the plaintext password. Hash it before storing, and return a response model that leaves it out.
 # [SUGGEST] Don't let callers choose account_type freely. Anyone could create an admin.
 # [SUGGEST] Use a dedicated account counter (see core.py) and return status 201.
-@app.post("/accounts")
+@app.post("/accounts", status_code=201)
 def create_account(account: AccountCreate):
     # global id_counter   (original; replaced by core.id_counter below so the counter is shared across files)
+
+    for existing_account in accounts:
+        if existing_account["username"] == account.username:
+            raise HTTPException(status_code=400, detail="Username already exists")
 
     new_account = {
         # "id": id_counter,   (original)
