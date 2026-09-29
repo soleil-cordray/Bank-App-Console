@@ -30,3 +30,27 @@ class CustomerCreate(BaseModel):
 class Transaction(BaseModel):
     amount: float
     type: str 
+
+#getter for customer
+@app.get("/customers")
+def get_customers():
+    return customers
+
+#create a customer
+@app.post("/customers")
+def create_customer(customer: CustomerCreate):
+    global id_counter
+
+    new_customer = {
+        "id": id_counter,
+        "name": customer.name,
+        "username": customer.username,
+        "postal_code": customer.postal_code,
+        "address": customer.address,
+        "balance": customer.initial_balance
+    }
+
+    customers.append(new_customer)
+    id_counter += 1
+
+    return new_customer
