@@ -18,13 +18,13 @@ The Java application's core concepts (User, Customer, Account, SavingsAccount, a
 
 ```bash
 HTTP Request
-     ↓
+↓
 Controller / Router
-     ↓
+↓
 Service / Business Logic
-     ↓
+↓
 Repository / Data Access
-     ↓
+↓
 Model
 ```
 
@@ -93,7 +93,7 @@ The REST API replaces the console interaction; the underlying banking concepts r
 | PUT	| /api/v1/customers/{id} | Update customer |
 | DELETE | /api/v1/customers/{id}	| Deactivate customer |
 
-Example:
+**Example**:
 ```bash
 POST /api/v1/customers
 ```
@@ -112,7 +112,7 @@ POST /api/v1/accounts
 GET  /api/v1/accounts
 ```
 
-Example:
+**Example**:
 ```json
 {
     "customer_id": 1,
@@ -122,7 +122,7 @@ Example:
 }
 ```
 
-Account types:
+**Account Types**:
 ```bash
 CHECKING
 SAVINGS
@@ -130,8 +130,7 @@ SAVINGS
 
 ## 💸 Transaction API
 
-Transfer money:
-
+**Transfer Money**:
 ```bash
 POST /api/v1/transactions/transfer
 ```
@@ -174,12 +173,12 @@ Account
 
 ## 🔎 Filtering
 
-Accounts:
+**Accounts**:
 ```bash
 GET /api/v1/accounts?branch_id=123&min_balance=1000
 ```
 
-Transactions:
+**Transactions**:
 ```bash
 GET /api/v1/transactions?start_date=2026-01-01&type=TRANSFER
 ```
@@ -220,9 +219,9 @@ Transaction
 Implement:
 ```bash
 Repository
-    ↓
+↓
 Service
-    ↓
+↓
 Controller
 ```
 for all customer endpoints.
@@ -255,17 +254,17 @@ Using Postman or curl, verify:
 Transform:
 ```bash
 Java Console Application
-          ↓
+↓
 Python REST API
-          ↓
+↓
 Controller
-          ↓
+↓
 Service
-          ↓
+↓
 Repository
-          ↓
+↓
 Models
-          ↓
+↓
 Future Database
 ```
 
