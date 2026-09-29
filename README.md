@@ -4,9 +4,64 @@ Backend REST API | CRUD MVC Flow
 
 ## Prerequisites
 
-1. install dependencies ==>
-    windows: pip install fastapi uvicorn pydantic
-    mac: brew install fastapi uvicorn pydantic
+1. **Install Python**
+
+   Check installation:
+   * **macOS/Linux**: `python3 --version`
+   * **Windows**: `python --version`
+
+2. **Create a Virtual Environment**
+
+   From project root:
+   * **macOS/Linux**:
+     ```bash
+     python3 -m venv venv
+     source venv/bin/activate
+     ```
+   * **Windows**:
+     ```bash
+     python -m venv venv
+     venv\Scripts\activate
+     ```
+
+3. **Install Dependencies**
+
+   Once the virtual environment is activated:
+   * **macOS/Linux**: `python -m pip install fastapi uvicorn`
+   * **Windows**: `python -m pip install fastapi uvicorn`
+
+4. **Save Dependencies**
+
+   After installing the packages:
+   ```python
+   python -m pip freeze > requirements.txt
+   ```
+
+   The `requirements.txt` file allows other developers to install the same dependencies:
+   ```python
+   python -m pip install -r requirements.txt
+   ```
+
+5. **IDE**
+
+   You can use either VS Code or Zed. The Python setup is the same; the IDE does not change how the virtual environment or packages are installed.
+
+   Project setup:
+   ```bash
+   Bank-App-Console/
+   ├── app/
+   ├── venv/
+   ├── requirements.txt
+   ├── .gitignore
+   └── README.md
+   ```
+
+   Add the virtual environment to `.gitignore`:
+   ```bash
+   venv/
+   __pycache__/
+   *.pyc
+   ```
 
 ## 🎯 Goal
 
