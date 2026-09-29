@@ -43,7 +43,7 @@ customers = [
 
 # [EXPLAIN] id_counter is the next ID to hand out. It starts at 7 because accounts 1-6 exist. Right now BOTH create_customer and create_account use it, so they share one sequence.
 # [SUGGEST] Rename to account_id_counter, and have create_customer use customer_id_counter instead. Otherwise the first new customer gets ID 7 and ID 6 is skipped.
-id_counter = 7
+account_id_counter = 7
 # [EXPLAIN] Intended as the next customer ID (customers 1-5 exist), but nothing uses it yet.
 customer_id_counter = 6
 
@@ -69,10 +69,15 @@ class AccountRead(BaseModel):
 #class to create the customer
 class CustomerCreate(BaseModel):
     name: str
-    username: str
     postal_code: str
     address: str
     initial_balance: float = 0.0
+
+class CustomerRead(BaseModel):
+    name: str
+    postal_code: str
+    address: str
+    balance: float
 
 # [EXPLAIN] Meant for deposits and withdrawals, but no route uses it yet.
 # [SUGGEST] Restrict type to Literal["deposit", "withdrawal"] and require amount > 0 (Field(gt=0)). Decide who owns the future transaction route file.

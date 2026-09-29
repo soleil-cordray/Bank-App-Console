@@ -14,9 +14,8 @@ def create_customer(customer: CustomerCreate):
 
     new_customer = {
         # "id": id_counter,   (original)
-        "id": core.id_counter,
+        "id": core.customer_id_counter,
         "name": customer.name,
-        "username": customer.username,
         "postal_code": customer.postal_code,
         "address": customer.address,
         "balance": customer.initial_balance

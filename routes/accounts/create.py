@@ -14,7 +14,7 @@ def create_account(account: AccountCreate):
 
     new_account = {
         # "id": id_counter,   (original)
-        "id": core.id_counter,
+        "id": core.account_id_counter,
         "username": account.username,
         "password": account.password,
         "account_type": account.account_type,
@@ -23,6 +23,6 @@ def create_account(account: AccountCreate):
 
     accounts.append(new_account)
     # id_counter += 1   (original)
-    core.id_counter += 1
+    core.account_id_counter += 1
 
     return new_account
