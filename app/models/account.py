@@ -39,7 +39,7 @@ class Account:
 
     def deposit(self, amount):
         # "non-negative deposits" [1.C], "negative inputs" [1.4]
-        self.check_amount(amount)
+        self._check_amount(amount)
         self._balance = round(self._balance + amount, 2)
 
     def withdraw(self, amount):
