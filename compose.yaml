@@ -1,0 +1,8 @@
+services:
+  bankappconsole1:
+    image: bankappconsole1
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - 8000:8000
