@@ -2,6 +2,8 @@
 
 Python REST API for the ABC Digital Bank.
 
+Flags in the code: ADDED, CHANGED, KEPT, REMOVED, and MOVED describe your old code. [x.y] is Chapter x, Step y. [x.C] is a line from Chapter x's Concepts. [not in rubric] means the workshop doesn't require it.
+
 #### Contents
 1. [Setup](#setup)
 2. [Run](#run)
