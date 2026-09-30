@@ -10,3 +10,6 @@ class NotFoundError(Exception):
 
 class BadRequestError(Exception):
     """The request is invalid (bad data, broken business rule) -> HTTP 400."""
+
+class UnauthorizedError(Exception):
+    """Not logged in, or wrong email/password -> HTTP 401. [5A.2]"""

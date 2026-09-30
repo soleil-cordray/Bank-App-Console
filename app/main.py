@@ -12,12 +12,13 @@ from fastapi.responses import JSONResponse
 
 from app.controllers import (
     account_controller,
+    auth_controller,
     branch_controller,
     customer_controller,
     transaction_controller,
 )
 from app.database import create_indexes, verify_connection
-from app.exceptions import BadRequestError, NotFoundError
+from app.exceptions import BadRequestError, NotFoundError, UnauthorizedError
 
 
 @asynccontextmanager
@@ -34,7 +35,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Bank-App Console", lifespan=lifespan)
 
 # PREFIX: every endpoint starts with /api/v1 prefix, added here
-for controller in (customer_controller, account_controller, transaction_controller, branch_controller):
+for controller in (auth_controller, customer_controller, account_controller, transaction_controller, branch_controller):
     app.include_router(controller.router, prefix="/api/v1")
 
 
@@ -49,6 +50,12 @@ async def bad_request_handler(request: Request, error: BadRequestError):
     return JSONResponse(status_code=400, content={"detail": str(error)})
 
 
+@app.exception_handler(UnauthorizedError)
+async def unauthorized_handler(request: Request, error: UnauthorizedError):
+    # 401 = not logged in / wrong email or password [5A.2]
+    return JSONResponse(status_code=401, content={"detail": str(error)}, headers={"WWW-Authenticate": "Bearer"})
+
+
 @app.exception_handler(RequestValidationError)
 async def validation_error_handler(request: Request, error: RequestValidationError):
     # FastAPI's answer to a badly-formed body = 422,
@@ -57,5 +64,6 @@ async def validation_error_handler(request: Request, error: RequestValidationErr
     # - workshop does not say which code a malformed body should get
     return JSONResponse(status_code=400, content={"detail": jsonable_encoder(error.errors())})
 
+# 401 / 403 come from app/dependencies.py (bad token / wrong role) [5A]
 # 200 = OK & 201 = created are set on the routes themselves,
 # 500 needs no code: FastAPI already answers 500 for any error nobody handled

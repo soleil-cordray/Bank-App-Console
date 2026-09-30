@@ -30,6 +30,7 @@ users = db["users"] # holds Customers ("users" is the name 3.1 requires)
 accounts = db["accounts"]
 transactions = db["transactions"]
 branches = db["branches"]
+credentials = db["credentials"] # logins: email + password_hash + role [5A.1]
 
 # every new record gets the next number ID (1, 2, 3...)
 counters = db["counters"]
@@ -56,8 +57,9 @@ def create_indexes():
     transactions.create_index("id", unique=True)
     accounts.create_index("branch_id") # rubric-specified filter
     users.create_index("branch_id")
-    # REMOVED users.create_index("username", unique=True)
-    # > add later (when working on usernames/passwords)
+    # LOGIN INDEXES [5A.1]: email = username, so one login per email
+    credentials.create_index("email", unique=True)
+    credentials.create_index("login_id", unique=True)
 
 
 def get_next_id(name):
