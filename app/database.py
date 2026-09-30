@@ -68,4 +68,4 @@ def get_next_id(name):
         upsert=True,
         return_document=ReturnDocument.AFTER,
     )
-    return counters["value"]
+    return counter["value"]
