@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 
 from pymongo import ReturnDocument
 
-from database import get_next_id
+from app.database import get_next_id
 
 HIDE_MONGO_ID = {"_id": 0} # never send MongoDB internal _id back to API
 ACTIVE_ONLY = {"is_active": {"$ne": False}} # hide deactivated records
