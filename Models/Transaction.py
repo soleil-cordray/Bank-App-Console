@@ -5,7 +5,7 @@ class TransactionBase(BaseModel):
     amount: float = Field(..., gt=0)
     account_id_to: int  | None
     account_id_from: int | None
-    timestamp: str = Field(..., regex=r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$')  # ISO 8601 format
+    timestamp: str = Field(..., pattern=r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$')  # ISO 8601 format
 
 
 
