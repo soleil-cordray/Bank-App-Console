@@ -1,326 +1,119 @@
 # Bank-App-Console
 
-Backend REST API | CRUD MVC Flow
+Python REST API for the ABC Digital Bank.
 
-## Prerequisites
+#### Contents
+1. [Setup](#setup)
+2. [Run](#run)
+3. [Test](#test)
+4. [Troubleshoot](#troubleshoot)
 
-1. **Install Python**
+## Setup
+> Once a teammate has committed a frozen requirements.txt, use `python -m pip install -r requirements.txt` for step 4 instead.
+> Before Step 13, install MongoDB. Details for every system are in the workshop's [mongodb.md](https://github.com/becloudready/workshops/blob/master/workshops/fullstack-aws/chapters/02-BackendWithRestApi-CRUD-MVCFlow_Filter_Search/mongodb.md).
 
-   Check installation:
-   * **macOS/Linux**: `python3 --version`
-   * **Windows**: `python --version`
+**Prerequisites**: [Python 3.10+](https://www.python.org/downloads/), [Git](https://git-scm.com/download/win).
 
-2. **Create a Virtual Environment**
-
-   From project root:
-   * **macOS/Linux**:
-     ```bash
-     python3 -m venv venv
-     source venv/bin/activate
-     ```
-   * **Windows**:
-     ```bash
-     python -m venv venv
-     venv\Scripts\activate
-     ```
-
-3. **Install Dependencies**
-
-   Once the virtual environment is activated:
-   * **macOS/Linux**: `python -m pip install fastapi uvicorn`
-   * **Windows**: `python -m pip install fastapi uvicorn`
-
-4. **Save Dependencies**
-
-   After installing the packages:
-   ```python
-   python -m pip freeze > requirements.txt
-   ```
-
-   The `requirements.txt` file allows other developers to install the same dependencies:
-   ```python
-   python -m pip install -r requirements.txt
-   ```
-
-5. **IDE**
-
-   You can use either VS Code or Zed. The Python setup is the same; the IDE does not change how the virtual environment or packages are installed.
-
-   Project setup:
-   ```bash
-   Bank-App-Console/
-   ├── app/
-   ├── venv/
-   ├── requirements.txt
-   ├── .gitignore
-   └── README.md
-   ```
-
-   Add the virtual environment to `.gitignore`:
-   ```bash
-   venv/
-   __pycache__/
-   *.pyc
-   ```
-
-## 🎯 Goal
-
-Convert the existing ABC Digital Bank Java console application into a modular Python REST API using a layered architecture.
-
-The Java application's core concepts (User, Customer, Account, SavingsAccount, and CheckingAccount) will be carried forward into the Python implementation.
-
-### Architecture
-
+### Linux/macOS
 ```bash
-HTTP Request
-↓
-Controller / Router
-↓
-Service / Business Logic
-↓
-Repository / Data Access
-↓
-Model
+# 1. Ensure Tools Installed
+git --version
+python3 --version # requires 3.10+
+brew install python git # if needed
+
+# 2. Clone Project
+git clone <https://github.com/soleil-cordray/Bank-App-Console.git> Bank-App-Console
+cd Bank-App-Console
+
+# 3. Run Virtual Environment
+python3 -m venv venv
+source venv/bin/activate
+
+# 4. Install Packages
+python -m pip install --upgrade pip
+python -m pip install fastapi uvicorn httpx pymongo pyjwt bcrypt python-multipart
 ```
 
-The first version will use in-memory data. A database can be added later without changing the overall architecture.
-
-## 🛠️ Technology
-
-- Python
-- Flask
-- REST API
-- Layered / MVC architecture
-- In-memory storage
-- Postman / curl for testing
-- API version: /api/v1
-
-## 📁 Project Structure
-
+### Windows
 ```bash
-bank-api/
-│
-├── app/
-│   ├── controllers/       # HTTP routes
-│   ├── services/          # Business logic
-│   ├── repositories/      # Data access
-│   ├── models/            # Domain objects
-│   └── main.py            # Flask entry point
-│
-├── requirements.txt
-├── README.md
-└── .gitignore
+# 1. Ensure Tools Installed
+git --version
+python --version # requires 3.10+
+
+# 2. Clone Project
+git clone <https://github.com/soleil-cordray/Bank-App-Console.git> Bank-App-Console
+cd Bank-App-Console
+
+# 3a. Enable Scripts (if disabled; answer 'Y')
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+
+# 3b. Run Virtual Environment
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+
+# 4. Install Packages
+python -m pip install --upgrade pip
+python -m pip install fastapi uvicorn httpx pymongo pyjwt bcrypt python-multipart
 ```
 
-### Layer Responsibilities
+## Run
+> After Step 12 the last line becomes uvicorn app.main:app --reload. If a teammate changed requirements.txt, also run python -m pip install -r requirements.txt after the pull.
 
-| Layer |	Responsibility |
-| - | - |
-| Controller	| HTTP requests, responses, status codes |
-| Service	| Validation and business rules |
-| Repository | Store/retrieve/update data |
-| Model	| Customer, Account, Transaction, etc. |
+#### Steps
+1. Visit local project copy's root
+2. Activate the virtual environment
+3. Apply shared project updates to local copy
+4. Start API (Ctrl+C to stop)
 
-## 🔄 Java → Python Mapping
-
-| Java | Python |
-| - | - |
-| Main.main()	| app/main.py |
-| Scanner	| HTTP JSON requests |
-| ArrayList<Customer> |	Repository/in-memory storage |
-| User | models/user.py |
-| Customer | models/customer.py |
-| Account | models/account.py |
-| SavingsAccount | models/account.py |
-| CheckingAccount | models/account.py |
-| Console menus	| REST endpoints |
-| System.out.println() | JSON responses |
-
-The REST API replaces the console interaction; the underlying banking concepts remain.
-
-## 👤 Customer API
-
-| Method | Endpoint |	Purpose |
-| - | - | - |
-| POST |	/api/v1/customers	| Create customer |
-| GET |	/api/v1/customers	| List customers |
-| GET	| /api/v1/customers/{id} | Get customer |
-| PUT	| /api/v1/customers/{id} | Update customer |
-| DELETE | /api/v1/customers/{id}	| Deactivate customer |
-
-**Example**:
+### Linux/macOS
 ```bash
-POST /api/v1/customers
-```
-```json
-{
-    "name": "Rohit",
-    "username": "rohit",
-    "password": "rohit123"
-}
+cd Bank-App-Console
+source venv/bin/activate
+git pull --rebase
+uvicorn main:app --reload
 ```
 
-## 💳 Account API
-
+### Windows
 ```bash
-POST /api/v1/accounts
-GET  /api/v1/accounts
+cd Bank-App-Console
+.\venv\Scripts\Activate.ps1
+git pull --rebase
+uvicorn main:app --reload
 ```
 
-**Example**:
-```json
-{
-    "customer_id": 1,
-    "branch_id": 123,
-    "account_type": "SAVINGS",
-    "initial_balance": 5000
-}
-```
+## Test
+> Complete after Step 11 builds `smoke_test.py`
 
-**Account Types**:
+#### While server running
+1. Open http://127.0.0.1:8000/doc#, click **Authorize**, and log in with a demo login.
+2. In a **second terminal**, activate the VE and run `python smoke_test.py`. It should end with `ALL RUBRIC CHECKS PASSED`.
+3. Run the demo script: `bash demo.sh`.
+
+## Troubleshoot
+
+#### Adding a Python package
 ```bash
-CHECKING
-SAVINGS
+python -m pip install <package> # install package
+python -m pip freeze > requirements.txt # update requirements.txt
+# commit, then inform the team
 ```
 
-## 💸 Transaction API
-
-**Transfer Money**:
+#### Teammate changed `requirements.txt`
 ```bash
-POST /api/v1/transactions/transfer
-```
-```json
-{
-    "from_account_id": 101,
-    "to_account_id": 102,
-    "amount": 500
-}
+# re-install packages from requirements.txt
+python -m pip install -r requirements.txt
 ```
 
-The service layer will **enforce**:
-- Accounts exist
-- Accounts are active
-- Amount is greater than zero
-- Sufficient balance exists
-- Source balance is reduced
-- Destination balance is increased
-- Transaction is recorded
-
-## 🏦 Branches
-
-Branches will be added to support account filtering.
+#### Virtual environment broken / Python upgraded
 ```bash
-Branch
-├── id
-├── name
-└── location
+# delete the venv folder (OS-specific)
+rm -rf venv # Linux/macOS
+Remove-Item -Recurse -Force venv # PowerShell
+# redo steps 3 and 4 of initial setup
 ```
 
-Accounts will reference a branch:
+#### Port 8000 already in use
 ```bash
-Account
-├── id
-├── customer_id
-├── branch_id
-├── account_type
-└── balance
+uvicorn main:app --reload --port 8001 # next port
+# now use :8001 in every URL
 ```
-
-## 🔎 Filtering
-
-**Accounts**:
-```bash
-GET /api/v1/accounts?branch_id=123&min_balance=1000
-```
-
-**Transactions**:
-```bash
-GET /api/v1/transactions?start_date=2026-01-01&type=TRANSFER
-```
-
-## 📊 HTTP Status Codes
-| Status | Usage |
-| - | - |
-| 200	| Successful request |
-| 201	| Resource created |
-| 400	| Invalid request |
-| 404	| Resource not found |
-| 500	| Unexpected server error |
-
-## 🗺️ Implementation Roadmap
-
-### 1. Setup
-
-- Create project ✅
-- Create package structure ✅
-- Create main.py ✅
-- Run the API
-
-### 1. Models
-
-Implement:
-```bash
-User
-Customer
-Account
-CheckingAccount
-SavingsAccount
-Branch
-Transaction
-```
-
-### 3. Customer CRUD
-
-Implement:
-```bash
-Repository
-↓
-Service
-↓
-Controller
-```
-for all customer endpoints.
-
-### 4. Accounts
-
-Add account creation, retrieval, and filtering.
-
-### 5. Transactions
-
-Implement money transfers and transaction history.
-
-### 6. Branches & Filtering
-
-Add branch relationships and query parameter filtering.
-
-### 7. Error Handling & Testing
-
-Using Postman or curl, verify:
-```bash
-200
-201
-400
-404
-500
-```
-
-## 🎯 End Goal
-
-Transform:
-```bash
-Java Console Application
-↓
-Python REST API
-↓
-Controller
-↓
-Service
-↓
-Repository
-↓
-Models
-↓
-Future Database
-```
-
-The focus of Phase 02 is learning how to transform the existing single-flow Java banking application into a modular RESTful backend.
