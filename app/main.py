@@ -67,3 +67,8 @@ async def validation_error_handler(request: Request, error: RequestValidationErr
 # 401 / 403 come from app/dependencies.py (bad token / wrong role) [5A]
 # 200 = OK & 201 = created are set on the routes themselves,
 # 500 needs no code: FastAPI already answers 500 for any error nobody handled
+
+@app.exception_handler(ForbiddenError)
+async def forbidden_handler(request: Request, error: ForbiddenError):
+    # logged in, but not allowed (e.g. someone else's account) -> 403
+    return JSONResponse(status_code=403, content={"detail": str(error)})

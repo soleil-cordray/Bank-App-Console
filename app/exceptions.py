@@ -13,3 +13,7 @@ class BadRequestError(Exception):
 
 class UnauthorizedError(Exception):
     """Not logged in, or wrong email/password -> HTTP 401. [5A.2]"""
+
+class ForbiddenError(Exception):
+    """The caller is logged in, but not allowed to touch this (e.g. someone else's account) -> HTTP 403."""
+
