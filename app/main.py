@@ -18,7 +18,7 @@ from app.controllers import (
     transaction_controller,
 )
 from app.database import create_indexes, verify_connection
-from app.exceptions import BadRequestError, NotFoundError, UnauthorizedError, ForbiddenError
+from app.exceptions import BadRequestError, ForbiddenError, NotFoundError, UnauthorizedError, ForbiddenError
 
 
 @asynccontextmanager

@@ -5,7 +5,7 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from app.models.customer import EMAIL_PATTERN
 
@@ -26,6 +26,27 @@ class RegisterRequest(BaseModel):
     password: str = Field(..., min_length=8, max_length=72)
 
     _normalize_email = field_validator("email", mode="before")(_lowercase)
+
+
+class StaffLoginCreate(BaseModel):
+    '''Body of POST /api/v1/auth/staff (ADMIN creates a staff login). [5A.3]'''
+    email: str = Field(..., pattern=EMAIL_PATTERN)
+    password: str = Field(..., min_length=8, max_length=72)
+    role: Literal["TELLER", "BRANCH_MANAGER", "ADMIN"]
+    branch_id: int | None = Field(None, gt=0)  # which branch they work at
+
+    _normalize_email = field_validator("email", mode="before")(_lowercase)
+
+    @field_validator("role", mode="before")
+    @classmethod
+    def _accept_any_case(cls, value):
+        return value.upper() if isinstance(value, str) else value
+
+    @model_validator(mode="after")
+    def _branch_staff_need_branch(self):
+        if self.role in ("TELLER", "BRANCH_MANAGER") and self.branch_id is None:
+            raise ValueError(f"a {self.role} login needs a branch_id")
+        return self
 
 
 class Login(BaseModel):

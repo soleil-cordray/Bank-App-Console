@@ -53,10 +53,10 @@ MANAGERS = Depends(require_roles("BRANCH_MANAGER", "ADMIN"))
 
 @router.get("/analytics/transaction-volume", tags=["Analytics"])
 def branch_transaction_volume(branch_id: int, month: str = Query(..., description="YYYY-MM, e.g. 2026-09"),
-                              _: CurrentUser = MANAGERS):
-    # TODO [5A.3 part 2]: a BRANCH_MANAGER should only see their OWN branch
+                              user: CurrentUser = MANAGERS):
+    # a BRANCH_MANAGER only sees their OWN branch (checked in the service)
     # "total transaction volume for a branch per month" [1.3]
-    return transaction_service.branch_transaction_volume(branch_id, month)
+    return transaction_service.branch_transaction_volume(branch_id, month, user)
 
 
 @router.get("/analytics/staff-to-manager-ratio", tags=["Analytics"])

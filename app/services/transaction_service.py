@@ -11,7 +11,7 @@
 
 from datetime import date, datetime, time
 
-from app.exceptions import BadRequestError, NotFoundError
+from app.exceptions import BadRequestError, ForbiddenError, NotFoundError
 from app.models.account import Account
 from app.models.transaction import Transaction, TransactionCreate, TransferCreate
 from app.repositories.account_repository import account_repository
@@ -23,7 +23,7 @@ TRANSACTION_TYPES = ["DEPOSIT", "WITHDRAWAL", "TRANSFER"] # [1.1]
 class TransactionService:
     # TRANSFER [2.2] ----------------------------------------------------------
     # POST /api/v1/transactions/transfer (process money transfer)
-    def transfer(self, transfer: TransferCreate) -> Transaction:
+    def transfer(self, transfer: TransferCreate, user=None) -> Transaction:
         if transfer.from_account == transfer.to_account:
             raise BadRequestError("Can't transfer money to the same account.")
         if transfer.amount > Account.TRANSFER_LIMIT:
@@ -31,6 +31,10 @@ class TransactionService:
 
         source = self._load_account(transfer.from_account)
         destination = self._load_account(transfer.to_account)
+
+        # OWN DATA [5A.3]: a CUSTOMER can only send money FROM their own account
+        if user is not None and user.role == "CUSTOMER" and source.owner_id != user.customer_id:
+            raise ForbiddenError("You can only transfer from your own accounts")
 
         # STEP 1: ask Account objects
         # their rules (minimum balance, overdraft, positive amount)
@@ -69,7 +73,7 @@ class TransactionService:
         return self._record("WITHDRAWAL", account.account_number, None, transaction.amount, account.branch_id)
 
     # READ --------------------------------------------------------------------
-    def get_all_transactions(self, start_date: date | None = None, type: str | None = None) -> list[Transaction]:
+    def get_all_transactions(self, start_date: date | None = None, type: str | None = None, user=None) -> list[Transaction]:
         # GET /transactions?start_date=2026-01-01&type=TRANSFER [2.3]
         # only filter by what the caller actually sent
         filters = {}
@@ -81,19 +85,31 @@ class TransactionService:
             if type not in TRANSACTION_TYPES:
                 raise BadRequestError(f"type must be one of {TRANSACTION_TYPES}")
             filters["type"] = type # now stored
+        # OWN DATA [5A.3]: a CUSTOMER only sees money moving in/out of their accounts
+        if user is not None and user.role == "CUSTOMER":
+            mine = self._own_account_numbers(user)
+            filters["$or"] = [{"from_account": {"$in": mine}}, {"to_account": {"$in": mine}}]
         return [Transaction.model_validate(t) for t in transaction_repository.get_all(filters)]
 
-    def get_transaction(self, id: int) -> Transaction:
+    def get_transaction(self, id: int, user=None) -> Transaction:
         # read one transaction [2.C]
         transaction = transaction_repository.get_by_id(id)
         if transaction is None:
             raise NotFoundError("Transaction not found")
+        # OWN DATA [5A.3]: a CUSTOMER only sees transactions on their accounts
+        if user is not None and user.role == "CUSTOMER":
+            mine = self._own_account_numbers(user)
+            if transaction["from_account"] not in mine and transaction["to_account"] not in mine:
+                raise ForbiddenError("You can only view your own transactions")
         return Transaction.model_validate(transaction)
 
     # ANALYTICS ---------------------------------------------------------------
 
-    def branch_transaction_volume(self, branch_id: int, month: str) -> dict:
+    def branch_transaction_volume(self, branch_id: int, month: str, user=None) -> dict:
         '''Adds up the amount of EVERY transaction (deposits, withdrawals and transfers) that went through the branch in one month.'''
+        # OWN BRANCH [5A.3]: a BRANCH_MANAGER only sees their own branch
+        if user is not None and user.role == "BRANCH_MANAGER" and user.branch_id != branch_id:
+            raise ForbiddenError("You can only view your own branch")
         if branch_repository.get_by_id(branch_id) is None:
             raise NotFoundError("Branch not found")
         try:
@@ -114,6 +130,11 @@ class TransactionService:
         return transaction_repository.monthly_transfer_volume()
 
     # HELPERS -----------------------------------------------------------------
+
+    @staticmethod
+    def _own_account_numbers(user):
+        # the account numbers a CUSTOMER owns [5A.3]
+        return [a["account_number"] for a in account_repository.get_all({"owner_id": user.customer_id})]
 
     def _load_account(self, account_number):
         document = account_repository.get_by_id(account_number)

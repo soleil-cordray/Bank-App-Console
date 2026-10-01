@@ -1,12 +1,12 @@
 # app/controllers/auth_controller.py
 # NEW. Login endpoints.
-# REFS: 5A.1 (registration + login), 5A.2 (token)
+# REFS: 5A.1 (registration + login), 5A.2 (token), 5A.3 (staff roles)
 
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 
-from app.dependencies import get_current_user
-from app.models.auth import CurrentUser, Login, RegisterRequest, Token
+from app.dependencies import get_current_user, require_roles
+from app.models.auth import CurrentUser, Login, RegisterRequest, StaffLoginCreate, Token
 from app.services.auth_service import auth_service
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -31,3 +31,8 @@ def who_am_i(user: CurrentUser = Depends(get_current_user)):
     # GET /api/v1/auth/me  (any logged-in user: shows what the token says)
     return user
 
+
+@router.post("/staff", response_model=Login, status_code=201)
+def create_staff_login(request: StaffLoginCreate, _: CurrentUser = Depends(require_roles("ADMIN"))):
+    # POST /api/v1/auth/staff  (ADMIN only: make TELLER / BRANCH_MANAGER / ADMIN logins)
+    return auth_service.create_staff_login(request)

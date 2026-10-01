@@ -22,18 +22,16 @@ def create_account(account: AccountCreate, _: CurrentUser = Depends(require_role
 
 @router.get("", response_model=list[AccountResponse])
 def read_accounts(branch_id: int | None = None, min_balance: float | None = None,
-                  _: CurrentUser = Depends(require_roles(*ALL_ROLES))):
-    # WHO [5A.3]: any logged-in user
-    # TODO [5A.3 part 2]: a CUSTOMER should only see their OWN accounts
+                  user: CurrentUser = Depends(require_roles(*ALL_ROLES))):
+    # WHO [5A.3]: staff see all; a CUSTOMER only sees their OWN (filtered in the service)
     # GET /api/v1/accounts?branch_id=123&min_balance=1000 [2.3]
-    return account_service.get_all_accounts(branch_id, min_balance)
+    return account_service.get_all_accounts(branch_id, min_balance, user)
 
 
 @router.get("/{account_number}", response_model=AccountResponse)
-def read_account(account_number: str, _: CurrentUser = Depends(require_roles(*ALL_ROLES))):
-    # WHO [5A.3]: any logged-in user
-    # TODO [5A.3 part 2]: a CUSTOMER should only see their OWN account
+def read_account(account_number: str, user: CurrentUser = Depends(require_roles(*ALL_ROLES))):
+    # WHO [5A.3]: staff, or the CUSTOMER who owns it (checked in the service)
     # read one account [2.C]
-    return account_service.get_account(account_number)
+    return account_service.get_account(account_number, user)
 
 # REMOVED: PUT and DELETE /accounts/{id} (see the note in account_service.py)

@@ -3,7 +3,7 @@
 # REFS: 2.2 (POST /accounts), 2.3 (GET /accounts filters), 1.2,
 #       1.3 (accounts of a branch)
 
-from app.exceptions import BadRequestError, NotFoundError
+from app.exceptions import BadRequestError, ForbiddenError, NotFoundError
 from app.models.account import Account, AccountCreate, AccountResponse
 from app.repositories.account_repository import account_repository
 from app.repositories.branch_repository import branch_repository
@@ -28,7 +28,7 @@ class AccountService:
         saved = account_repository.create(opened.to_document())
         return AccountResponse.model_validate(saved)
 
-    def get_all_accounts(self, branch_id: int | None = None, min_balance: float | None = None) -> list[AccountResponse]:
+    def get_all_accounts(self, branch_id: int | None = None, min_balance: float | None = None, user=None) -> list[AccountResponse]:
         # GET /accounts?branch_id=123&min_balance=1000 [2.3]
         # only filter by what caller actually sent
         filters = {}
@@ -37,13 +37,19 @@ class AccountService:
         if min_balance is not None:
             # $gte = "greater than or equal to"
             filters["balance"] = {"$gte": min_balance}
+        # OWN DATA [5A.3]: a CUSTOMER only ever sees their own accounts
+        if user is not None and user.role == "CUSTOMER":
+            filters["owner_id"] = user.customer_id
         return [AccountResponse.model_validate(a) for a in account_repository.get_all(filters)]
 
-    def get_account(self, account_number: str) -> AccountResponse:
+    def get_account(self, account_number: str, user=None) -> AccountResponse:
         # read an Account [2.C]
         account = account_repository.get_by_id(account_number)
         if account is None:
             raise NotFoundError("Account not found")
+        # OWN DATA [5A.3]: a CUSTOMER may only read their own account
+        if user is not None and user.role == "CUSTOMER" and account["owner_id"] != user.customer_id:
+            raise ForbiddenError("You can only view your own accounts")
         return AccountResponse.model_validate(account)
 
     # REMOVED update_account and delete_account

@@ -1,5 +1,5 @@
 # app/services/auth_service.py
-# NEW. Registration and login.
+# NEW. Registration, staff logins, and login.
 # REFS: 5A.1 (registration + login, bcrypt), 5A.2 (issue JWT on login)
 
 import re
@@ -7,7 +7,8 @@ import re
 from pymongo.errors import DuplicateKeyError
 
 from app.exceptions import BadRequestError, UnauthorizedError
-from app.models.auth import Login, RegisterRequest, Token
+from app.models.auth import Login, RegisterRequest, StaffLoginCreate, Token
+from app.repositories.branch_repository import branch_repository
 from app.repositories.credential_repository import credential_repository
 from app.repositories.customer_repository import customer_repository
 from app.security import create_access_token, hash_password, verify_password
@@ -22,7 +23,7 @@ class AuthService:
     def register(self, request: RegisterRequest) -> Login:
         '''A customer creates a login for their existing customer profile.'''
         # anyone can call register, so it only ever creates CUSTOMER logins
-        # TODO [5A.3 part 2]: a way to create TELLER / BRANCH_MANAGER / ADMIN logins
+        # (staff logins are made by an ADMIN through create_staff_login)
         customer = self._find_customer_by_email(request.email)
         if customer is None:
             raise BadRequestError("No customer profile uses that email. Ask a teller to create one first.")
@@ -32,6 +33,19 @@ class AuthService:
             "role": "CUSTOMER",
             "customer_id": customer["customer_id"],
             "branch_id": customer["branch_id"],
+        })
+
+    # STAFF LOGINS [5A.3] -----------------------------------------------------
+    def create_staff_login(self, request: StaffLoginCreate) -> Login:
+        '''An ADMIN creates a TELLER, BRANCH_MANAGER or ADMIN login.'''
+        if request.branch_id is not None and branch_repository.get_by_id(request.branch_id) is None:
+            raise BadRequestError(f"Branch {request.branch_id} does not exist")
+        return self._save({
+            "email": request.email,
+            "password_hash": hash_password(request.password),
+            "role": request.role,
+            "customer_id": None,
+            "branch_id": request.branch_id,
         })
 
     # LOGIN [5A.1, 5A.2] ------------------------------------------------------
