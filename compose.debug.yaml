@@ -1,10 +1,46 @@
+version: '3.8'
+
 services:
+  mongo:
+    image: mongo:7.0
+    container_name: bank-mongo-debug
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    volumes:
+      - mongodata:/data/db
+    networks:
+      - appnetwork
+
   bankappconsole1:
     image: bankappconsole1
+    container_name: bank-app-debug
     build:
       context: .
       dockerfile: ./Dockerfile
-    command: ["sh", "-c", "pip install debugpy -t /tmp && python /tmp/debugpy --wait-for-client --listen 0.0.0.0:5678 -m uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+    command: sh -c "pip install debugpy -t /tmp && python /tmp/debugpy --wait-for-client --listen 0.0.0.0:5678 -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
     ports:
-      - 8000:8000
-      - 5678:5678
+      - "8000:8000"
+      - "5678:5678"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - MONGO_URI=${MONGO_URI}
+      - JWT_SECRET=${JWT_SECRET}
+    volumes:
+      - ./app:/app/app
+    depends_on:
+      - mongo
+    networks:
+      - appnetwork
+
+volumes:
+  mongodata:
+    driver: local
+
+networks:
+  appnetwork:
+    driver: bridge
