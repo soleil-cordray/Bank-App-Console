@@ -76,6 +76,30 @@ def test_analytics_are_for_managers_and_admin_only(bank):
         assert bank.get(url, as_="rohit").status_code == 403, url
 
 
+def test_branch_staff_endpoint_is_manager_admin_only_and_branch_scoped(bank):
+    other_branch_staff = bank.post(
+        "/auth/staff",
+        json={"email": "other.teller@bank.test", "password": "password123", "role": "TELLER", "branch_id": 2},
+        as_="admin",
+    )
+    assert other_branch_staff.status_code == 201
+    url = "/branches/1/staff"
+
+    assert bank.get(url).status_code == 401
+    assert bank.get(url, as_="rohit").status_code == 403
+    assert bank.get(url, as_="teller").status_code == 403
+    manager_response = bank.get(url, as_="manager")
+    admin_response = bank.get(url, as_="admin")
+    expected_logins = {("teller@bank.test", "TELLER"), ("manager@bank.test", "BRANCH_MANAGER")}
+    assert {(login["email"], login["role"]) for login in manager_response.json()} == expected_logins
+    assert {(login["email"], login["role"]) for login in admin_response.json()} == expected_logins
+    assert all(login["customer_id"] is None for login in admin_response.json())
+    assert all("password_hash" not in login for login in admin_response.json())
+    assert bank.get("/branches/2/staff", as_="manager").status_code == 403
+    assert {login["email"] for login in bank.get("/branches/2/staff", as_="admin").json()} == {"other.teller@bank.test"}
+    assert bank.get("/branches/99/staff", as_="admin").status_code == 404
+
+
 def test_branch_manager_only_sees_their_own_branch_volume(bank):
     other_branch = "/branches/analytics/transaction-volume?branch_id=2&month=2026-09"
     assert bank.get(other_branch, as_="manager").status_code == 403

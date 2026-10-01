@@ -13,11 +13,13 @@
 
 import { useState } from 'react'
 import {
-  Alert, Box, Card, CardContent, Chip, CircularProgress, Grid, MenuItem, Paper, TextField, Typography,
+  Alert, Grid, MenuItem, Paper, TextField, Typography,
 } from '@mui/material'
 
 import useApi from '../api/useApi'
 import { useAuth } from '../auth/AuthContext'
+import { AnalyticsSection, AnalyticsStatCard, BranchStaffSection } from '../components/AnalyticsComponents'
+import CreateStaffLoginDialog from '../components/CreateStaffLoginDialog'
 import DataTable from '../components/DataTable'
 import { formatMoney } from '../utils/format'
 
@@ -34,11 +36,14 @@ function percent(ratio) {
 export default function AnalyticsPage() {
   const { user } = useAuth()
   const isAdmin = user.role === 'ADMIN'
+  const canViewStaff = isAdmin || user.role === 'BRANCH_MANAGER'
 
   // WHICH BRANCH: an ADMIN picks from the list (first branch until they choose)
   const branches = useApi(isAdmin ? '/branches' : null)
   const [pickedBranchId, setPickedBranchId] = useState('')
   const branchId = isAdmin ? (pickedBranchId || branches.data?.[0]?.branch_id) : user.branch_id
+  const [createStaffOpen, setCreateStaffOpen] = useState(false)
+  const [createdStaff, setCreatedStaff] = useState(null)
 
   // WHICH MONTH + the two "flag branches over ..." limits
   const [month, setMonth] = useState(thisMonth())
@@ -53,6 +58,7 @@ export default function AnalyticsPage() {
   // DATA: each one re-fetches by itself when its URL changes
   // (null = skip, e.g. while an input is invalid)
   const branch = useApi(branchId ? `/branches/${branchId}` : null)
+  const branchStaff = useApi(canViewStaff && branchId ? `/branches/${branchId}/staff` : null)
   const volume = useApi(branchId && month
     ? `/branches/analytics/transaction-volume?branch_id=${branchId}&month=${month}` : null)
   const monthlyTransfers = useApi('/branches/analytics/monthly-transfer-volume')
@@ -65,14 +71,19 @@ export default function AnalyticsPage() {
     return <Alert severity="info">No branches yet. Create one with POST /branches first.</Alert>
   }
 
-  const staff = branch.data?.staff_list ?? []
-  const contractCount = staff.filter((member) => member.employment_type !== 'DIRECT').length
-
+  const staff = branchStaff.data ?? []
   return (
     <>
       <Typography variant="h4" component="h1" gutterBottom>
         Branch analytics
       </Typography>
+
+      {createdStaff && (
+        <Alert severity="success" sx={{ mb: 2 }}>
+          Created {createdStaff.role.toLowerCase().replace('_', ' ')} login for {createdStaff.email}
+          {' '}in branch #{createdStaff.branch_id}.
+        </Alert>
+      )}
 
       {/* CONTROLS: which branch + which month */}
       <Paper sx={{ p: 2, mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -81,7 +92,10 @@ export default function AnalyticsPage() {
             select
             label="Branch"
             value={branchId ?? ''}
-            onChange={(event) => setPickedBranchId(event.target.value)}
+            onChange={(event) => {
+              setPickedBranchId(event.target.value)
+              setCreatedStaff(null)
+            }}
             sx={{ minWidth: 240 }}
           >
             {(branches.data ?? []).map((option) => (
@@ -103,11 +117,22 @@ export default function AnalyticsPage() {
           slotProps={{ inputLabel: { shrink: true } }}
         />
       </Paper>
+      {isAdmin && createStaffOpen && (
+        <CreateStaffLoginDialog
+          open={createStaffOpen}
+          onClose={() => setCreateStaffOpen(false)}
+          onCreated={setCreatedStaff}
+          branchId={branchId}
+          branchLabel={branch.data
+            ? `${branch.data.branch_code} · ${branch.data.location} (#${branchId})`
+            : `Branch #${branchId}`}
+        />
+      )}
 
       {/* PERFORMANCE INDICATORS for the chosen branch + month */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid size={{ xs: 12, sm: 4 }}>
-          <StatCard
+        <Grid size={{ xs: 12, sm: isAdmin ? 4 : 6 }}>
+          <AnalyticsStatCard
             label="Transaction volume"
             value={volume.data ? formatMoney(volume.data.total_volume) : null}
             note="deposits + withdrawals + transfers"
@@ -115,8 +140,8 @@ export default function AnalyticsPage() {
             error={volume.error}
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 4 }}>
-          <StatCard
+        <Grid size={{ xs: 12, sm: isAdmin ? 4 : 6 }}>
+          <AnalyticsStatCard
             label="Transactions"
             value={volume.data?.transaction_count}
             note={`in ${month || 'the chosen month'}`}
@@ -124,43 +149,34 @@ export default function AnalyticsPage() {
             error={volume.error}
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 4 }}>
-          <StatCard
+        <Grid size={{ xs: 12, sm: isAdmin ? 4 : 6 }}>
+          <AnalyticsStatCard
             label="Staff"
-            value={branch.data ? staff.length : null}
-            note={`${staff.length - contractCount} direct · ${contractCount} contract`}
-            loading={branch.loading}
-            error={branch.error}
+            value={branchStaff.data ? staff.length : null}
+            note="active logins assigned to this branch"
+            loading={branchStaff.loading}
+            error={branchStaff.error}
           />
         </Grid>
       </Grid>
 
       <Grid container spacing={2}>
         {/* STAFF DISTRIBUTION for the chosen branch */}
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Section title="Staff" loading={branch.loading} error={branch.error}>
-            <DataTable
-              rows={staff}
-              rowKey={(member) => member.staff_id}
-              emptyText="No staff listed for this branch."
-              columns={[
-                { label: 'Name', render: (member) => member.name },
-                { label: 'Staff ID', render: (member) => member.staff_id },
-                { label: 'Type', render: (member) => member.employment_type },
-                {
-                  label: 'Role',
-                  render: (member) => member.staff_id === branch.data.manager_id
-                    ? <Chip label="Manager" size="small" color="primary" />
-                    : 'Staff',
-                },
-              ]}
+        {canViewStaff && (
+          <Grid size={{ xs: 12, md: 6 }}>
+            <BranchStaffSection
+              staff={staff}
+              loading={branchStaff.loading}
+              error={branchStaff.error}
+              canCreateStaff={isAdmin && Boolean(branchId)}
+              onCreateStaff={() => setCreateStaffOpen(true)}
             />
-          </Section>
-        </Grid>
+          </Grid>
+        )}
 
         {/* TRANSFERS per branch per month (every branch) */}
         <Grid size={{ xs: 12, md: 6 }}>
-          <Section title="Monthly transfer volume" loading={monthlyTransfers.loading} error={monthlyTransfers.error}>
+          <AnalyticsSection title="Monthly transfer volume" loading={monthlyTransfers.loading} error={monthlyTransfers.error}>
             <DataTable
               rows={monthlyTransfers.data ?? []}
               rowKey={(row) => `${row.branch_id}-${row.month}`}
@@ -172,12 +188,12 @@ export default function AnalyticsPage() {
                 { label: 'Total', render: (row) => formatMoney(row.total_transferred), align: 'right' },
               ]}
             />
-          </Section>
+          </AnalyticsSection>
         </Grid>
 
         {/* FLAGGED: too many staff per manager (every branch) */}
         <Grid size={{ xs: 12, md: 6 }}>
-          <Section
+          <AnalyticsSection
             title="Staff per manager over limit"
             loading={overManaged.loading}
             error={staffLimitOk ? overManaged.error : 'Enter a limit of 0 or more.'}
@@ -204,12 +220,12 @@ export default function AnalyticsPage() {
                 { label: 'Staff per manager', render: (row) => row.staff_to_manager_ratio ?? 'No manager', align: 'right' },
               ]}
             />
-          </Section>
+          </AnalyticsSection>
         </Grid>
 
         {/* FLAGGED: too many contract staff (every branch) */}
         <Grid size={{ xs: 12, md: 6 }}>
-          <Section
+          <AnalyticsSection
             title="Contract staff over limit"
             loading={contractHeavy.loading}
             error={contractLimitOk ? contractHeavy.error : 'Enter a percent from 0 to 100.'}
@@ -236,45 +252,10 @@ export default function AnalyticsPage() {
                 { label: 'Share', render: (row) => percent(row.non_direct_ratio), align: 'right' },
               ]}
             />
-          </Section>
+          </AnalyticsSection>
         </Grid>
       </Grid>
     </>
   )
 }
 
-// ONE NUMBER in a card (a "KPI" / performance indicator)
-function StatCard({ label, value, note, loading, error }) {
-  return (
-    <Card sx={{ height: '100%' }}>
-      <CardContent>
-        <Typography variant="overline" color="text.secondary">{label}</Typography>
-        {error ? (
-          <Alert severity="error" sx={{ mt: 1 }}>{error}</Alert>
-        ) : (
-          <>
-            <Typography variant="h4" component="p">
-              {loading ? <CircularProgress size={28} /> : (value ?? '—')}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">{note}</Typography>
-          </>
-        )}
-      </CardContent>
-    </Card>
-  )
-}
-
-// A titled box that shows a spinner or an error instead of its content
-function Section({ title, control, loading, error, children }) {
-  return (
-    <Paper sx={{ p: 2, height: '100%' }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mb: 1 }}>
-        <Typography variant="h6" component="h2">{title}</Typography>
-        {control}
-      </Box>
-      {error && <Alert severity="error">{error}</Alert>}
-      {!error && loading && <CircularProgress size={24} />}
-      {!error && !loading && children}
-    </Paper>
-  )
-}

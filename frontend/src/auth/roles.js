@@ -6,5 +6,8 @@
 // POST /transactions/transfer
 export const CAN_TRANSFER = ['CUSTOMER', 'ADMIN']
 
+// POST /customers and POST /accounts
+export const STAFF = ['TELLER', 'BRANCH_MANAGER', 'ADMIN']
+
 // GET /branches/analytics/*
 export const MANAGERS = ['BRANCH_MANAGER', 'ADMIN']

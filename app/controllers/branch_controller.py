@@ -6,7 +6,7 @@
 from fastapi import APIRouter, Depends, Query
 
 from app.dependencies import ALL_ROLES, STAFF, require_roles
-from app.models.auth import CurrentUser
+from app.models.auth import CurrentUser, Login
 
 from app.models.branch import Branch, BranchCreate, BranchUpdate
 from app.services.branch_service import branch_service
@@ -25,6 +25,12 @@ def create_branch(branch: BranchCreate, _: CurrentUser = Depends(require_roles("
 def read_branches(_: CurrentUser = Depends(require_roles(*ALL_ROLES))):
     # WHO [5A.3]: any logged-in user
     return branch_service.get_all_branches()
+
+
+@router.get("/{branch_id}/staff", response_model=list[Login])
+def read_branch_staff(branch_id: int, user: CurrentUser = Depends(require_roles("BRANCH_MANAGER", "ADMIN"))):
+    # Branch managers can view their own branch; admins can view any branch.
+    return branch_service.get_branch_staff(branch_id, user)
 
 
 @router.get("/{branch_id}", response_model=Branch)

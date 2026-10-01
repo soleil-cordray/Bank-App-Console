@@ -5,11 +5,13 @@
 
 from pymongo.errors import DuplicateKeyError
 
-from app.exceptions import BadRequestError, NotFoundError
+from app.exceptions import BadRequestError, ForbiddenError, NotFoundError
+from app.models.auth import Login
 from app.models.branch import Branch, BranchCreate, BranchUpdate, validate_staff
 from app.repositories.account_repository import account_repository
 from app.repositories.branch_repository import branch_repository
 from app.repositories.customer_repository import customer_repository
+from app.repositories.staff_repository import staff_repository
 
 
 class BranchService:
@@ -27,6 +29,12 @@ class BranchService:
 
     def get_branch(self, branch_id: int) -> Branch:
         return Branch.model_validate(self._get_or_404(branch_id))
+
+    def get_branch_staff(self, branch_id: int, user=None) -> list[Login]:
+        self._get_or_404(branch_id)
+        if user is not None and user.role == "BRANCH_MANAGER" and user.branch_id != branch_id:
+            raise ForbiddenError("You can only view staff at your own branch")
+        return [Login.model_validate(login) for login in staff_repository.get_by_branch_id(branch_id)]
 
     def update_branch(self, branch_id: int, branch: BranchUpdate) -> Branch:
         current = self._get_or_404(branch_id)

@@ -6,7 +6,7 @@ import { Link as RouterLink, useNavigate } from 'react-router'
 import { AppBar, Box, Button, Toolbar, Typography } from '@mui/material'
 
 import { useAuth } from '../auth/AuthContext'
-import { CAN_TRANSFER, MANAGERS } from '../auth/roles'
+import { CAN_TRANSFER, MANAGERS, STAFF } from '../auth/roles'
 
 export default function NavBar() {
   const { user, logout } = useAuth()
@@ -35,6 +35,12 @@ export default function NavBar() {
             {CAN_TRANSFER.includes(user.role) && (
               <Button color="inherit" component={RouterLink} to="/transfer">Transfer</Button>
             )}
+            {STAFF.includes(user.role) && (
+              <Button color="inherit" component={RouterLink} to="/customers/new">New customer</Button>
+            )}
+            {STAFF.includes(user.role) && (
+              <Button color="inherit" component={RouterLink} to="/accounts/new">New account</Button>
+            )}
             {MANAGERS.includes(user.role) && (
               <Button color="inherit" component={RouterLink} to="/analytics">Analytics</Button>
             )}
@@ -43,6 +49,12 @@ export default function NavBar() {
               {user.email} · {user.role}
             </Typography>
             <Button color="inherit" onClick={handleLogout}>Log out</Button>
+          </Box>
+        )}
+        {!user && (
+          <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
+            <Button color="inherit" component={RouterLink} to="/login">Log in</Button>
+            <Button color="inherit" component={RouterLink} to="/register">Register</Button>
           </Box>
         )}
       </Toolbar>

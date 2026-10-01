@@ -3,7 +3,7 @@
 // REFS: 07 Step 2
 
 import { useState } from 'react'
-import { Navigate, useNavigate, useSearchParams } from 'react-router'
+import { Link as RouterLink, Navigate, useNavigate, useSearchParams } from 'react-router'
 import { Alert, Box, Button, Paper, TextField, Typography } from '@mui/material'
 
 import { getErrorMessage } from '../api/client'
@@ -47,6 +47,9 @@ export default function LoginPage() {
       {searchParams.get('expired') && !error && (
         <Alert severity="info" sx={{ mb: 2 }}>Your session expired. Please log in again.</Alert>
       )}
+      {searchParams.get('registered') && !error && (
+        <Alert severity="success" sx={{ mb: 2 }}>Registration complete. You can now log in.</Alert>
+      )}
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
       <Box component="form" onSubmit={handleSubmit}>
@@ -75,6 +78,9 @@ export default function LoginPage() {
           {submitting ? 'Logging in…' : 'Log in'}
         </Button>
       </Box>
+      <Typography variant="body2" color="text.secondary" sx={{ mt: 2, textAlign: 'center' }}>
+        Need a login? <RouterLink to="/register">Register</RouterLink>
+      </Typography>
     </Paper>
   )
 }
