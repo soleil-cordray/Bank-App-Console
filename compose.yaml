@@ -33,7 +33,10 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
       - MONGO_URI=${MONGO_URI}
+      - DB_NAME=${DB_NAME}
       - JWT_SECRET=${JWT_SECRET}
+      - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@bank.local}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-AdminPassword123}
     depends_on:
       mongo:
         condition: service_healthy
