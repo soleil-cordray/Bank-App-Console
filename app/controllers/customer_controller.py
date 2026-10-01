@@ -28,11 +28,10 @@ def read_customers(_: CurrentUser = Depends(require_roles(*STAFF))):
     return customer_service.get_all_customers()
 
 @router.get("/{id}", response_model=Customer)
-def read_customer(id: int, _: CurrentUser = Depends(require_roles(*ALL_ROLES))):
-    # WHO [5A.3]: any logged-in user
-    # TODO [5A.3 part 2]: a CUSTOMER should only see their OWN profile
+def read_customer(id: int, user: CurrentUser = Depends(require_roles(*ALL_ROLES))):
+    # WHO [5A.3]: staff, or a CUSTOMER reading their OWN profile (checked in the service)
     # GET /api/v1/customers/{id} (get customer details) [2.2]
-    return customer_service.get_customer(id)
+    return customer_service.get_customer(id, user)
 
 
 @router.put("/{id}", response_model=Customer)

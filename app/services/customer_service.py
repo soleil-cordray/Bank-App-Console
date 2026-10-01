@@ -2,7 +2,7 @@
 # WAS Services/UserService.py
 # REFS: 2.2 (the five customer endpoints), 1.1 (Accounts list)
 
-from app.exceptions import BadRequestError, NotFoundError
+from app.exceptions import BadRequestError, ForbiddenError, NotFoundError
 from app.models.customer import Customer, CustomerCreate, CustomerUpdate
 from app.repositories.account_repository import account_repository
 from app.repositories.branch_repository import branch_repository
@@ -20,8 +20,11 @@ class CustomerService:
         # GET /customers [2.2]
         return [self._to_customer(c) for c in customer_repository.get_all()]
 
-    def get_customer(self, customer_id: int) -> Customer:
+    def get_customer(self, customer_id: int, user=None) -> Customer:
         # GET /customers/{id} [2.2]
+        # OWN DATA [5A.3]: a CUSTOMER may only read their own profile
+        if user is not None and user.role == "CUSTOMER" and user.customer_id != customer_id:
+            raise ForbiddenError("You can only view your own profile")
         return self._to_customer(self._get_or_404(customer_id))
 
     def update_customer(self, customer_id: int, customer: CustomerUpdate) -> Customer:
